@@ -99,12 +99,15 @@ class NBAMoment:
       split_string = location_string.split(',')
       team_id = split_string[0]
       sv_player_id = int(split_string[1])
+      player = player_svu_map.get(sv_player_id)
+      if player == None:
+        player = sv_player_id
       location = (float(split_string[2]), float(split_string[3]), float(split_string[4]))
 
       if team_id == sv_home_team_id:
-        self.home_team_locations[sv_player_id] = location
+        self.home_team_locations[player] = location
       if team_id == sv_away_team_id:
-        self.away_team_locations[sv_player_id] = location
+        self.away_team_locations[player] = location
 
   def __str__(self):
     return 'game_clock=%s, shot_clock=%s, ball_location=%s, home_team_locations=%s, away_team_locations=%s' % ((self.game_clock, self.shot_clock, self.ball_location, self.home_team_locations, self.away_team_locations))
@@ -163,9 +166,9 @@ def load_team_maps(filename):
   return team_map, sv_team_map
 
 
+player_map, player_svu_map = load_player_maps('%s/Player_Map.csv' % data_root_dir)
+team_map, team_svu_map = load_team_maps('%s/Team_Map.csv' % data_root_dir)
 game = NBAGame(2016102505)
-#print load_player_maps('%s/Player_Map.csv' % data_root_dir)
-#print load_team_maps('%s/Team_Map.csv' % data_root_dir)
 
 for moment in game.moments[1]:
   print moment
