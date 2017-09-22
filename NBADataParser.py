@@ -106,6 +106,12 @@ class NBAMoment:
       if team_id == sv_away_team_id:
         self.away_team_locations[sv_player_id] = location
 
+  def __str__(self):
+    return 'game_clock=%s, shot_clock=%s, ball_location=%s, home_team_locations=%s, away_team_locations=%s' % ((self.game_clock, self.shot_clock, self.ball_location, self.home_team_locations, self.away_team_locations))
+
+  def __repr__(self):
+    return self.__str__()
+
 # Returns two maps:
 # 1) Maps from regular player id to NBAPlayer objects.
 # 2) Maps from SportsVU player id to NBAPlayer objects.
@@ -162,7 +168,4 @@ game = NBAGame(2016102505)
 #print load_team_maps('%s/Team_Map.csv' % data_root_dir)
 
 for moment in game.moments[1]:
-    print moment.home_team_locations
-    print moment.away_team_locations
-    print moment.game_clock
-    print moment.shot_clock
+  print moment
