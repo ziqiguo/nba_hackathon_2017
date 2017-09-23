@@ -1,6 +1,6 @@
 from ShotParser import load_shots
 
-defender_distance_range = 4
+defender_distance_range = 2
 shot_distance_range = 3
 
 class ShotQuality:
@@ -17,10 +17,6 @@ class ShotQuality:
     shot_count = 0
     made = 0
     dist_hist = dict()
-    print lb_def_dist
-    print ub_def_dist
-    print lb_shot_dist
-    print ub_shot_dist
     for shot in shots:
       if shot.defender_distance >= lb_def_dist and shot.defender_distance <= ub_def_dist:
         if shot.shot_distance >= lb_shot_dist and shot.shot_distance <= ub_shot_dist:
@@ -31,9 +27,11 @@ class ShotQuality:
             made += 1
     print shot_count
     print made
+    if shot_count == 0:
+      return 0.5*shot_value
     print float(made)/shot_count
     ev = float(made)/shot_count * shot_value
     return ev
 
 #shotQuality = ShotQuality()
-#shotQuality.shot_quality(201939, 4, 22, 2)
+#print shotQuality.shot_quality(201939, 0, 23, 3)
