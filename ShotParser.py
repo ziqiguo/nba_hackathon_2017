@@ -1,4 +1,9 @@
+import csv
+from nba import NBAPlayer
+import pandas as pd
 data_root_dir = 'data'
+player_map_file_name = '%s/Player_Map.csv' % data_root_dir
+shot_log_path = '%s/NBAPlayerTrackingData_2014-17' % data_root_dir
 
 def load_player_maps(filename):
   player_map = {}
@@ -32,14 +37,15 @@ class NBAShot:
     self.close_def_dist = close_def_dist
     self.pts_type = pts_type
   def __str__(self):
-    return self.person_name
+    return str(vars(self))
   def __repr__(self):
     return self.__str__()
 
 # Returns one dictionary:
 # Key: player ID
 # Value: shot information
-def load_shots(shot_log_path, player_map):
+def load_shots(shot_log_path):
+  player_map, player_svu_map = load_player_maps(player_map_file_name)
   player_map_new = {'PERSON_ID':[], 'PERSON_NAME':[]}
   for key, value in player_map.items():
       player_map_new['PERSON_ID'].append(key)
@@ -48,7 +54,7 @@ def load_shots(shot_log_path, player_map):
   player_map_df.head()
 
   filename1 = shot_log_path + '/2015-16_nba_shot_log.txt'
-  filename2 = shot_log_path + '2016-17_nba_shot_log.txt'
+  filename2 = shot_log_path + '/2016-17_nba_shot_log.txt'
 
   shot_1516 = pd.read_csv(filename1, sep='\t')
   shot_1516 = pd.merge(shot_1516, player_map_df, on='PERSON_ID')
@@ -71,6 +77,4 @@ def load_shots(shot_log_path, player_map):
 
   return shot_dict
 
-player_map, player_svu_map = load_player_maps('%s/Player_Map.csv' % data_root_dir)
-shot_log_path = 'data/Player Tracking Data'
-print load_shots(shot_log_path, player_map)
+print load_shots(shot_log_path)
