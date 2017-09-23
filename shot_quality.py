@@ -11,7 +11,6 @@ team_map_file_name = '%s/Team_Map.csv' % data_root_dir
 class ShotQuality:
   def __init__(self):
     self.shots = load_shots()
-#    self.shots = {201939: ['a']}
 
   def shot_quality(self, player_id, defender_distance, shot_distance, shot_value):
     shots = self.shots[player_id]
