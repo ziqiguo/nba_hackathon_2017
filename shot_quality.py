@@ -20,18 +20,13 @@ class ShotQuality:
     for shot in shots:
       if shot.defender_distance >= lb_def_dist and shot.defender_distance <= ub_def_dist:
         if shot.shot_distance >= lb_shot_dist and shot.shot_distance <= ub_shot_dist:
-          print shot.shot_distance
-          print shot.defender_distance
           shot_count += 1
           if shot.made:
             made += 1
-    print shot_count
-    print made
     if shot_count == 0:
       return 0.5*shot_value
-    print float(made)/shot_count
     ev = float(made)/shot_count * shot_value
     return ev
 
 #shotQuality = ShotQuality()
-#print shotQuality.shot_quality(201599, 0, 23, 3)
+#print shotQuality.shot_quality(201939, 4, 23, 3)
