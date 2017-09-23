@@ -1,11 +1,14 @@
 # Go through pass log and determine number of points that could have been created
 # via assist (based on shot quality)
 import pickle
+import math
 from NBADataParser import *
+from shot_quality import ShotQuality
 
-shot_filename = 'data/NBAPlayerTrackingData_2014-17/2015-16_nba_shot_log.txt'
-pass_filename = 'data/NBAPlayerTrackingData_2014-17/2015-16_nba_pass_log.txt'
-
+shot_filenames = ['data/NBAPlayerTrackingData_2014-17/2015-16_nba_shot_log.txt',
+                  'data/NBAPlayerTrackingData_2014-17/2016-17_nba_shot_log.txt']
+pass_filenames = ['data/NBAPlayerTrackingData_2014-17/2015-16_nba_pass_log.txt',
+                  'data/NBAPlayerTrackingData_2014-17/2016-17_nba_pass_log.txt']
 
 class NBAShot:
   def __init__(self, line):
@@ -59,55 +62,57 @@ class NBAAssist:
     return self.__str__()
 
 
-def load_shots(filename):
+def load_shots(filenames):
   games_to_shots = {}
   
-  with open(filename, 'rb') as file:
-    file.readline()
-    for row in file:
-      line = row.strip().split('\t')
-      game_id = int(line[0])
-      games_to_shots.setdefault(game_id, []).append(NBAShot(line))
+  for filename in filenames:
+    with open(filename, 'rb') as file:
+      file.readline()
+      for row in file:
+        line = row.strip().replace('"','').split('\t')
+        game_id = int(line[0])
+        games_to_shots.setdefault(game_id, []).append(NBAShot(line))
 
-    for game_id in games_to_shots:
-      sorted_shots = sorted(games_to_shots[game_id], key = lambda x: x.game_clock, reverse=True)
-      sorted_shots = sorted(sorted_shots, key = lambda x: x.period)
-      games_to_shots[game_id] = sorted_shots
+      for game_id in games_to_shots:
+        sorted_shots = sorted(games_to_shots[game_id], key = lambda x: x.game_clock, reverse=True)
+        sorted_shots = sorted(sorted_shots, key = lambda x: x.period)
+        games_to_shots[game_id] = sorted_shots
   
   return games_to_shots
 
 
-def load_passes(filename):
+def load_passes(filenames):
   passes = {}
   
-  with open(filename, 'rb') as file:
-    file.readline()
-    for row in file:
-      row_list = row.strip().split('\t')
-      
-      game_id = int(row_list[0][1:-1])
-      player_id = int(row_list[1])
-      period = int(row_list[5])
-      game_clock = float(row_list[7])
-      player_type = int(row_list[-1])
+  for filename in filenames:
+    with open(filename, 'rb') as file:
+      file.readline()
+      for row in file:
+        row_list = row.strip().replace('"','').split('\t')
+        
+        game_id = int(row_list[0])
+        player_id = int(row_list[1])
+        period = int(row_list[5])
+        game_clock = float(row_list[7])
+        player_type = int(row_list[-1])
 
-      key = (game_id, period, game_clock)
-      value = (player_type, player_id)
-      
-      if player_type == 1 or player_type == 2:
-        passes.setdefault(key, []).append(value)
+        key = (game_id, period, game_clock)
+        value = (player_type, player_id)
+        
+        if player_type == 1 or player_type == 2:
+          passes.setdefault(key, []).append(value)
 
-    games_to_passes = {}
-    for key in passes:
-      if len(passes[key]) != 2: continue
-      passer, receiver = sorted(passes[key])
-      game_id = key[0]
-      games_to_passes.setdefault(game_id, []).append(NBAPass(passer[1], receiver[1], key[1], key[2]))
+      games_to_passes = {}
+      for key in passes:
+        if len(passes[key]) != 2: continue
+        passer, receiver = sorted(passes[key])
+        game_id = key[0]
+        games_to_passes.setdefault(game_id, []).append(NBAPass(passer[1], receiver[1], key[1], key[2]))
 
-    for game_id in games_to_passes:
-      sorted_passes = sorted(games_to_passes[game_id], key = lambda x: x.game_clock, reverse=True)
-      sorted_passes = sorted(sorted_passes, key = lambda x: x.period)
-      games_to_passes[game_id] = sorted_passes
+      for game_id in games_to_passes:
+        sorted_passes = sorted(games_to_passes[game_id], key = lambda x: x.game_clock, reverse=True)
+        sorted_passes = sorted(sorted_passes, key = lambda x: x.period)
+        games_to_passes[game_id] = sorted_passes
 
   return games_to_passes
 
@@ -117,13 +122,17 @@ def is_assist(nba_pass, shot):
   if nba_pass.to_player_id != shot.player_id: return False
   if nba_pass.game_clock > shot.game_clock + shot.touch_time + 2: return False
   
-  return True
+  #score = -0.2093040*shot.dribbles + -0.5831289*shot.touch_time + 1.9638416
+  score = -0.40857009*shot.dribbles + -0.64162386*shot.touch_time + 0.03679159*shot.dribbles*shot.touch_time + 2.15275177
+  probability = 1 / (1 + math.exp(-score))
+
+  return probability > 0.5
 
 
 def load_assists():
   games_to_assists = {}
-  games_to_shots = load_shots(shot_filename)
-  games_to_passes = load_passes(pass_filename)
+  games_to_shots = load_shots(shot_filenames)
+  games_to_passes = load_passes(pass_filenames)
 
   game_ids = set(games_to_shots.keys())
   game_ids.intersection_update(games_to_passes.keys()) 
@@ -160,14 +169,52 @@ def load_assists():
   return games_to_assists
 
 # Maps from game_id to a list of NBAAssist objects.
-#pickle.dump(load_assists(), open('assist_data.pkl', 'wb'))
+pickle.dump(load_assists(), open('assist_data.pkl', 'wb'))
 
 
-game_id = 21500001
+def get_true_assists(sq, assists):
+  true_assists = {}
+  for assist in assists:
+    expected = sq.shot_quality(assist.shooter_id, assist.defender_distance, assist.shot_distance, assist.shot_value) / assist.shot_value
+    true_assists[assist.passer_id] = true_assists.get(assist.passer_id, 0) + expected
+  return true_assists
+
+  
+
+
+#game_id = 21500001 # Hawks Vs Pistons (October 27th 2015)
+#game_id = 21600299
+#game_id = 21600122 # John Wall is underrated
+#assists = games_to_assists[game_id]
+
+
+print 'Loading Assist Data...'
 games_to_assists = pickle.load(open('assist_data.pkl', 'rb'))
-
-assists = games_to_assists[game_id]
+print 'Loading Shot Data...'
+sq = ShotQuality()
+print 'Loading Player Map...'
 player_map, _ = load_player_maps('data/Player_Map.csv')
-print player_map
+
+'''
+true_assists = {}
+for game_id, assists in games_to_assists.items():
+  print game_id
+  for player_id, stat in get_true_assists(sq, assists).items():
+    true_assists.setdefault(player_id, []).append(stat)
+
+for player_id in true_assists:
+  stats = true_assists[player_id]
+  true_assists[player_id] = sum(stats)/len(stats)
+'''
+
+'''
+true_assists = get_true_assists(sq, games_to_assists[21600122])
+for player_id, stat in sorted(true_assists.items(), key = lambda x: x[1], reverse = True):
+    print player_map[player_id], stat
+'''
+
+
+
+
 
 

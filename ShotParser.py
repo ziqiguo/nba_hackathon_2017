@@ -9,7 +9,7 @@ def load_player_maps(filename):
   player_map = {}
   sv_player_map = {}
 
-  with open(filename, 'rb') as csvfile:
+  with open(filename, 'rU') as csvfile:
     csv_reader = csv.reader(csvfile)
     csv_reader.next()
 
