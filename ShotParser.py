@@ -1,9 +1,10 @@
-import csv
+import csv, pickle
 from nba import NBAPlayer
 import pandas as pd
 data_root_dir = 'data'
 player_map_file_name = '%s/Player_Map.csv' % data_root_dir
 shot_log_path = '%s/NBAPlayerTrackingData_2014-17' % data_root_dir
+pklFile = '%s/shot-quality.pkl' % data_root_dir
 
 def load_player_maps(filename):
   player_map = {}
@@ -46,6 +47,13 @@ class NBAShot:
 # Key: player ID
 # Value: shot information
 def load_shots():
+  try:
+    return pickle.load(open(pklFile, "rb"))
+  except:
+    print 'creating pickle file'
+    return read_file()
+
+def read_file():
   player_map, player_svu_map = load_player_maps(player_map_file_name)
   player_map_new = {'PERSON_ID':[], 'PERSON_NAME':[]}
   for key, value in player_map.items():
@@ -76,4 +84,5 @@ def load_shots():
       else:
           shot_dict[shot.person_id] = [shot]
 
+  pickle.dump(shot_dict, open(pklFile, "wb"))
   return shot_dict

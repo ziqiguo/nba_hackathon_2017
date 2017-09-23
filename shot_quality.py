@@ -3,7 +3,7 @@ from NBADataParser import load_player_maps, load_team_maps
 import pandas as pd
 
 
-defender_distance_range = 4
+defender_distance_range = 2
 shot_distance_range = 3
 player_map_file_name = '%s/Player_Map.csv' % data_root_dir
 team_map_file_name = '%s/Team_Map.csv' % data_root_dir
@@ -29,14 +29,14 @@ class ShotQuality:
     for shot in shots:
       if shot.defender_distance >= lb_def_dist and shot.defender_distance <= ub_def_dist:
         if shot.shot_distance >= lb_shot_dist and shot.shot_distance <= ub_shot_dist:
-          print shot.shot_distance
-          print shot.defender_distance
           shot_count += 1
           if shot.made:
             made += 1
     # print shot_count
     # print made
-    print float(made)/shot_count
+    # print float(made)/shot_count
+    if shot_count == 0:
+      return 0.5*shot_value
     ev = float(made)/shot_count * shot_value
     return ev
 
@@ -92,4 +92,4 @@ class ShotQuality:
 
 
 #shotQuality = ShotQuality()
-#shotQuality.shot_quality(201939, 4, 22, 2)
+#print shotQuality.shot_quality(201939, 4, 23, 3)
