@@ -28,8 +28,9 @@ def load_player_maps(filename):
 
 
 class NBAShot:
-  def __init__(self, game_id, person_id, person_name, shot_result, shot_dist, close_def_dist, pts_type):
+  def __init__(self, game_id, team_id, person_id, person_name, shot_result, shot_dist, close_def_dist, pts_type):
     self.game_id = game_id
+    self.team_id = team_id
     self.person_id = person_id
     self.person_name = person_name
     self.made = shot_result == 'made'
@@ -69,7 +70,7 @@ def load_shots():
   shot_dict = {}
   for row in shot_df.iterrows():
       temp = row[1]
-      shot = NBAShot(temp['GAME_ID'], temp['PERSON_ID'], temp['PERSON_NAME'], temp['SHOT_RESULT'], temp['SHOT_DIST'], temp['CLOSE_DEF_DIST'], temp['PTS_TYPE'])
+      shot = NBAShot(temp['GAME_ID'], temp['TEAM_ID'], temp['PERSON_ID'], temp['PERSON_NAME'], temp['SHOT_RESULT'], temp['SHOT_DIST'], temp['CLOSE_DEF_DIST'], temp['PTS_TYPE'])
       if shot.person_id in shot_dict.keys():
           shot_dict[shot.person_id].append(shot)
       else:
