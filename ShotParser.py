@@ -1,9 +1,10 @@
-import csv
+import csv, pickle
 from nba import NBAPlayer
 import pandas as pd
 data_root_dir = 'data'
 player_map_file_name = '%s/Player_Map.csv' % data_root_dir
 shot_log_path = '%s/NBAPlayerTrackingData_2014-17' % data_root_dir
+pklFile = '%s/shot-quality.pkl' % data_root_dir
 
 def load_player_maps(filename):
   player_map = {}
@@ -28,8 +29,9 @@ def load_player_maps(filename):
 
 
 class NBAShot:
-  def __init__(self, game_id, person_id, person_name, shot_result, shot_dist, close_def_dist, pts_type):
+  def __init__(self, game_id, team_id, person_id, person_name, shot_result, shot_dist, close_def_dist, pts_type):
     self.game_id = game_id
+    self.team_id = team_id
     self.person_id = person_id
     self.person_name = person_name
     self.made = shot_result == 'made'
@@ -45,6 +47,13 @@ class NBAShot:
 # Key: player ID
 # Value: shot information
 def load_shots():
+  try:
+    return pickle.load(open(pklFile, "rb"))
+  except:
+    print 'creating pickle file'
+    return read_file()
+
+def read_file():
   player_map, player_svu_map = load_player_maps(player_map_file_name)
   player_map_new = {'PERSON_ID':[], 'PERSON_NAME':[]}
   for key, value in player_map.items():
@@ -69,10 +78,11 @@ def load_shots():
   shot_dict = {}
   for row in shot_df.iterrows():
       temp = row[1]
-      shot = NBAShot(temp['GAME_ID'], temp['PERSON_ID'], temp['PERSON_NAME'], temp['SHOT_RESULT'], temp['SHOT_DIST'], temp['CLOSE_DEF_DIST'], temp['PTS_TYPE'])
+      shot = NBAShot(temp['GAME_ID'], temp['TEAM_ID'], temp['PERSON_ID'], temp['PERSON_NAME'], temp['SHOT_RESULT'], temp['SHOT_DIST'], temp['CLOSE_DEF_DIST'], temp['PTS_TYPE'])
       if shot.person_id in shot_dict.keys():
           shot_dict[shot.person_id].append(shot)
       else:
           shot_dict[shot.person_id] = [shot]
 
+  pickle.dump(shot_dict, open(pklFile, "wb"))
   return shot_dict
