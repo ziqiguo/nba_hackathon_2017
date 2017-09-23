@@ -67,11 +67,9 @@ def read_file():
 
   shot_1516 = pd.read_csv(filename1, sep='\t')
   shot_1516 = pd.merge(shot_1516, player_map_df, on='PERSON_ID')
-  shot_1516 = shot_1516[['GAME_ID','PERSON_ID','PERSON_NAME','SHOT_RESULT','SHOT_DIST','CLOSE_DEF_DIST','PTS_TYPE']]
 
   shot_1617 = pd.read_csv(filename2, sep='\t')
   shot_1617 = pd.merge(shot_1617, player_map_df, on='PERSON_ID')
-  shot_1617 = shot_1617[['GAME_ID','PERSON_ID','PERSON_NAME','SHOT_RESULT','SHOT_DIST','CLOSE_DEF_DIST','PTS_TYPE']]
 
   shot_df = pd.concat([shot_1516, shot_1617], axis=0)
 

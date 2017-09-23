@@ -2,6 +2,7 @@ from ShotParser import load_shots
 from NBADataParser import load_player_maps, load_team_maps
 import pandas as pd
 
+data_root_dir = 'data'
 
 defender_distance_range = 2
 shot_distance_range = 3
@@ -11,6 +12,7 @@ team_map_file_name = '%s/Team_Map.csv' % data_root_dir
 class ShotQuality:
   def __init__(self):
     self.shots = load_shots()
+    print('Shots loaded')
 #    self.shots = {201939: ['a']}
 
   def shot_quality(self, player_id, defender_distance, shot_distance, shot_value):
@@ -64,9 +66,9 @@ class ShotQuality:
 
   def shot_quality_team(self):
     shot_quality_team_dict = {}
-    for key, value in shot_dict.items():
+    for key, value in self.shots.items():
       for shot in value:
-        quality = ShotQuality().shot_quality(shot.person_id, shot.defender_distance, shot.shot_distance, shot.pts_type)
+        quality = self.shot_quality(shot.person_id, shot.defender_distance, shot.shot_distance, shot.pts_type)
         if shot.team_id in shot_quality_team_dict.keys():
           shot_quality_team_dict[shot.team_id][0] += quality
           shot_quality_team_dict[shot.team_id][1] += 1
@@ -76,6 +78,7 @@ class ShotQuality:
     for key, value in shot_quality_team_dict.items():
       shot_quality_team_dict[key] = value[0] / value[1]
 
+    print('Dictionary created')
     team_map, team_svu_map = load_team_maps(team_map_file_name)
     team_map_new = {'TEAM_ID':[], 'TEAM_NAME':[], 'SHOT_QUALITY':[]}
     for key, value in team_map.items():
@@ -86,6 +89,7 @@ class ShotQuality:
     shot_quality_team_df = shot_quality_team_df.sort_values(by='SHOT_QUALITY', ascending=False)
     return shot_quality_team_dict, shot_quality_team_df
 
+print(ShotQuality().shot_quality_team()[1])
 
 
 
