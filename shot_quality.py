@@ -34,4 +34,4 @@ class ShotQuality:
     return ev
 
 #shotQuality = ShotQuality()
-#print shotQuality.shot_quality(201939, 0, 23, 3)
+#print shotQuality.shot_quality(201599, 0, 23, 3)
