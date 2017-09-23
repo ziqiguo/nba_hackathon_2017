@@ -32,9 +32,9 @@ class NBAShot:
     self.game_id = game_id
     self.person_id = person_id
     self.person_name = person_name
-    self.shot_result = shot_result
-    self.shot_dist = shot_dist
-    self.close_def_dist = close_def_dist
+    self.made = shot_result == 'made'
+    self.shot_distance = shot_dist
+    self.defender_distance = close_def_dist
     self.pts_type = pts_type
   def __str__(self):
     return str(vars(self))
@@ -44,7 +44,7 @@ class NBAShot:
 # Returns one dictionary:
 # Key: player ID
 # Value: shot information
-def load_shots(shot_log_path):
+def load_shots():
   player_map, player_svu_map = load_player_maps(player_map_file_name)
   player_map_new = {'PERSON_ID':[], 'PERSON_NAME':[]}
   for key, value in player_map.items():
@@ -76,5 +76,3 @@ def load_shots(shot_log_path):
           shot_dict[shot.person_id] = [shot]
 
   return shot_dict
-
-print load_shots(shot_log_path)
