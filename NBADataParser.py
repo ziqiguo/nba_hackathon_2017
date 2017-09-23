@@ -14,7 +14,7 @@ def load_player_maps(filename):
   player_map = {}
   sv_player_map = {}
 
-  with open(filename, 'rb') as csvfile:
+  with open(filename, 'rU') as csvfile:
     csv_reader = csv.reader(csvfile)
     csv_reader.next()
 
@@ -66,13 +66,14 @@ def load_plays(filename):
       plays.append(NBAPlay(row))
   return plays
 
-#player_map, player_svu_map = load_player_maps('%s/Player_Map.csv' % data_root_dir)
-#team_map, team_svu_map = load_team_maps('%s/Team_Map.csv' % data_root_dir)
-#
-#plays = load_plays('%s/Play_by_Play_New.csv' % data_root_dir)
-#
-#game_id = 2016102505
-#game = NBAGame(GAME_FILE_FORMAT.format(game_id, 'Q1'), player_svu_map)
-#
-#for moment in game.moments[1]:
-#  print moment
+if __name__ == '__main__':
+	player_map, player_svu_map = load_player_maps('%s/Player_Map.csv' % data_root_dir)
+	team_map, team_svu_map = load_team_maps('%s/Team_Map.csv' % data_root_dir)
+
+	plays = load_plays('%s/Play_by_Play_New.csv' % data_root_dir)
+
+	game_id = 2016102505
+	game = NBAGame(GAME_FILE_FORMAT.format(game_id, 'Q1'), player_svu_map)
+
+	for moment in game.moments[1]:
+	  print moment
