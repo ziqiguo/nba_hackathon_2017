@@ -3,14 +3,14 @@ from nba import NBAPlayer
 import pandas as pd
 data_root_dir = 'data'
 player_map_file_name = '%s/Player_Map.csv' % data_root_dir
-shot_log_path = '%s/NBAPlayerTrackingData_2014-17' % data_root_dir
-pklFile = '%s/shot-quality.pkl' % data_root_dir
+shot_log_path = '%s/NBAPlayerTrackingData_2014-17/' % data_root_dir
+pklFile = 'shot-quality.pkl'
 
 def load_player_maps(filename):
   player_map = {}
   sv_player_map = {}
 
-  with open(filename, 'rb') as csvfile:
+  with open(filename, 'rU') as csvfile:
     csv_reader = csv.reader(csvfile)
     csv_reader.next()
 
@@ -62,17 +62,16 @@ def read_file():
   player_map_df = pd.DataFrame.from_dict(player_map_new)
   player_map_df.head()
 
-  filename1 = shot_log_path + '/2015-16_nba_shot_log.txt'
-  filename2 = shot_log_path + '/2016-17_nba_shot_log.txt'
+  filenames = ['2014-15_nba_shot_log.txt', '2015-16_nba_shot_log.txt', '2016-17_nba_shot_log.txt']
+  shot_pds = []
+  for filename in filenames:
+    filename = shot_log_path + filename
+    shot_arr = pd.read_csv(filename, sep='\t')
+    shot_arr  = pd.merge(shot_arr, player_map_df, on='PERSON_ID')
+    shot_arr = shot_arr[['TEAM_ID', 'GAME_ID','PERSON_ID','PERSON_NAME','SHOT_RESULT','SHOT_DIST','CLOSE_DEF_DIST','PTS_TYPE']]
+    shot_pds.append(shot_arr)
 
-  shot_1516 = pd.read_csv(filename1, sep='\t')
-  shot_1516 = pd.merge(shot_1516, player_map_df, on='PERSON_ID')
-
-  shot_1617 = pd.read_csv(filename2, sep='\t')
-  shot_1617 = pd.merge(shot_1617, player_map_df, on='PERSON_ID')
-
-  shot_df = pd.concat([shot_1516, shot_1617], axis=0)
-
+  shot_df = pd.concat(shot_pds, axis=0)
   shot_dict = {}
   for row in shot_df.iterrows():
       temp = row[1]
