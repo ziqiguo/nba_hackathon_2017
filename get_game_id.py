@@ -23,4 +23,5 @@ def get_game_id(team1, team2, date):
 
 if len(sys.argv) != 4:
   print 'usage: python get_game_id.py <team-abbrev-1> <team-abbrev-2> <date>'
+  sys.exit(1)
 print get_game_id(sys.argv[1], sys.argv[2], sys.argv[3])
