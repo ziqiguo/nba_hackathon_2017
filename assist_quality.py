@@ -169,14 +169,34 @@ def load_assists():
   return games_to_assists
 
 # Maps from game_id to a list of NBAAssist objects.
-pickle.dump(load_assists(), open('assist_data.pkl', 'wb'))
+#pickle.dump(load_assists(), open('assist_data.pkl', 'wb'))
 
+
+def add_dicts(dict1, dict2):
+  if dict1 == None:
+    return dict2
+  return {key : dict1[key] + dict2[key] for key in dict1}
+
+def average_dicts(dicts):
+  size = float(len(dicts))
+  avg_dict = { key : 0 for key in dicts[0]}
+  for d in dicts:
+    for key in d:
+      avg_dict[key] += d[key] / size
+  return avg_dict
 
 def get_true_assists(sq, assists):
   true_assists = {}
   for assist in assists:
-    expected = sq.shot_quality(assist.shooter_id, assist.defender_distance, assist.shot_distance, assist.shot_value) / assist.shot_value
-    true_assists[assist.passer_id] = true_assists.get(assist.passer_id, 0) + expected
+    shot_quality = sq.shot_quality(assist.shooter_id, assist.defender_distance, assist.shot_distance, assist.shot_value)
+    stats = {
+      'expected_assisted_points' : shot_quality,
+      'expected_assists' : shot_quality / assist.shot_value,
+      'actual_assisted_points' : assist.shot_value if assist.made_shot else 0,
+      'actual_assists' : 1 if assist.made_shot else 0,
+    }
+
+    true_assists[assist.passer_id] = add_dicts(true_assists.get(assist.passer_id), stats)
   return true_assists
 
   
@@ -198,23 +218,34 @@ player_map, _ = load_player_maps('data/Player_Map.csv')
 '''
 true_assists = {}
 for game_id, assists in games_to_assists.items():
+  if not str(game_id).startswith('216'): continue
+
   print game_id
   for player_id, stat in get_true_assists(sq, assists).items():
     true_assists.setdefault(player_id, []).append(stat)
 
 for player_id in true_assists:
-  stats = true_assists[player_id]
-  true_assists[player_id] = sum(stats)/len(stats)
-'''
+  true_assists[player_id] = average_dicts(true_assists[player_id])
+
+#true_assists = get_true_assists(sq, games_to_assists[21600122])
+
+for player_id, stat in sorted(true_assists.items(), key = lambda x: x[1]['expected_assisted_points']):
+  print player_map[player_id], stat
 
 '''
-true_assists = get_true_assists(sq, games_to_assists[21600122])
-for player_id, stat in sorted(true_assists.items(), key = lambda x: x[1], reverse = True):
-    print player_map[player_id], stat
-'''
 
-
-
+with open('assists.csv', 'wb') as csvfile:
+  csv_writer = csv.writer(csvfile)
+  csv_writer.writerow(['GAME_ID', 'PLAYER_ID', 'Actual Assists', 'Expected Assists', 'Actual Points from Assists', 'Expected Points from Assists'])
+  for game_id, assists in games_to_assists.items():
+    print game_id
+    for player_id, stats in get_true_assists(sq, assists).items():
+      csv_writer.writerow([game_id,
+                        player_id,
+                        stats['actual_assists'],
+                        stats['expected_assists'],
+                        stats['actual_assisted_points'],
+                        stats['expected_assisted_points']])
 
 
 
