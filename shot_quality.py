@@ -70,8 +70,8 @@ class ShotQuality:
     shot_quality_team_df = shot_quality_team_df.sort_values(by='SHOT_QUALITY', ascending=False)
     return shot_quality_team_dict, shot_quality_team_df
 
-
-shotQuality = ShotQuality()
-print shotQuality.shot_quality_player(201939, 21600078)
-print shotQuality.shot_quality_player(201939, 21400651)
-print shotQuality.shot_quality_player(202691, 21400651)
+if __name__ == '__main__':
+  shotQuality = ShotQuality()
+  print shotQuality.shot_quality_player(201939, 21600078)
+  print shotQuality.shot_quality_player(201939, 21400651)
+  print shotQuality.shot_quality_player(202691, 21400651)

@@ -13,6 +13,7 @@ pass_filenames = ['data/NBAPlayerTrackingData_2014-17/2015-16_nba_pass_log.txt',
 class NBAShot:
   def __init__(self, line):
     self.player_id = int(line[1])
+    self.team_id = int(line[2])
     self.period = int(line[8])
     self.game_clock = float(line[9]) / 10
     self.dribbles = int(line[11])
@@ -48,6 +49,7 @@ class NBAAssist:
     self.passer_id = nba_pass.from_player_id
     self.shooter_id = nba_pass.to_player_id
 
+    self.team_id = shot.team_id
     self.touch_time = shot.touch_time
     self.dribbles = shot.dribbles
     self.defender_distance = shot.closest_defender_distance
@@ -175,7 +177,9 @@ def load_assists():
 def add_dicts(dict1, dict2):
   if dict1 == None:
     return dict2
-  return {key : dict1[key] + dict2[key] for key in dict1}
+  new_dict = {key : dict1[key] + dict2[key] for key in dict1}
+  new_dict['team_id'] = dict1['team_id']
+  return new_dict
 
 def average_dicts(dicts):
   size = float(len(dicts))
@@ -190,6 +194,7 @@ def get_true_assists(sq, assists):
   for assist in assists:
     shot_quality = sq.shot_quality(assist.shooter_id, assist.defender_distance, assist.shot_distance, assist.shot_value)
     stats = {
+      'team_id' : assist.team_id,
       'expected_assisted_points' : shot_quality,
       'expected_assists' : shot_quality / assist.shot_value,
       'actual_assisted_points' : assist.shot_value if assist.made_shot else 0,
@@ -226,21 +231,31 @@ for game_id, assists in games_to_assists.items():
 
 for player_id in true_assists:
   true_assists[player_id] = average_dicts(true_assists[player_id])
+'''
 
-#true_assists = get_true_assists(sq, games_to_assists[21600122])
-
-for player_id, stat in sorted(true_assists.items(), key = lambda x: x[1]['expected_assisted_points']):
-  print player_map[player_id], stat
-
+'''
+with open('assist_games.csv', 'wb') as csvfile:
+  csv_writer = csv.writer(csvfile)
+  csv_writer.writerow(['GAME_ID', 'TEAM_ID', 'PLAYER_ID', 'Actual Assists', 'Expected Assists', 'Actual Points from Assists', 'Expected Points from Assists'])
+  for game_id in [21600299, 21600335, 21600122]:#, 21400651]:
+    for player_id, stats in get_true_assists(sq, games_to_assists[game_id]).items():
+        csv_writer.writerow([game_id,
+                          stats['team_id'],
+                          player_id,
+                          stats['actual_assists'],
+                          stats['expected_assists'],
+                          stats['actual_assisted_points'],
+                          stats['expected_assisted_points']])
 '''
 
 with open('assists.csv', 'wb') as csvfile:
   csv_writer = csv.writer(csvfile)
-  csv_writer.writerow(['GAME_ID', 'PLAYER_ID', 'Actual Assists', 'Expected Assists', 'Actual Points from Assists', 'Expected Points from Assists'])
+  csv_writer.writerow(['GAME_ID', 'TEAM_ID', 'PLAYER_ID', 'Actual Assists', 'Expected Assists', 'Actual Points from Assists', 'Expected Points from Assists'])
   for game_id, assists in games_to_assists.items():
     print game_id
     for player_id, stats in get_true_assists(sq, assists).items():
       csv_writer.writerow([game_id,
+                        stats['team_id'],
                         player_id,
                         stats['actual_assists'],
                         stats['expected_assists'],
